@@ -1,37 +1,42 @@
-name: Build Android
+name: Build Android APK
 
 on:
   push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+    branches:
+      - main
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-      - name: Use Node.js
-        uses: actions/setup-node@v4
+      - name: Set up JDK
+        uses: actions/setup-java@v3
         with:
-          node-version: 18
+          distribution: temurin
+          java-version: 17
 
-      - name: Cache node_modules
+      - name: Cache Gradle packages
         uses: actions/cache@v3
         with:
-          path: node_modules
-          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper/
+          key: gradle-${{ runner.os }}-${{ hashFiles('**/gradle-wrapper.properties') }}
           restore-keys: |
-            ${{ runner.os }}-node-
+            gradle-${{ runner.os }}-
 
-      - name: Install dependencies
-        run: npm install
+      - name: Make Gradle Wrapper executable
+        run: chmod +x gradlew
 
-      - name: Grant execute permission for gradlew
-        run: cd android && chmod +x gradlew
+      - name: Build APK (Clean + Assemble)
+        run: ./gradlew clean assembleDebug
 
-      - name: Build Android Debug
-        run: cd android && ./gradlew assembleDebug
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: output-apk
+          path: app/build/outputs/apk/debug/output-apk.apk
