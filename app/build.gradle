@@ -4,7 +4,7 @@ plugins {
 }
 
 android {
-    namespace 'com.example.amineplayer'
+    namespace 'com.amine.tst'
     compileSdk 34
 
     defaultConfig {
